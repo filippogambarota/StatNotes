@@ -1,0 +1,342 @@
+---
+title: "Binomial Data Analysis"
+author:
+  - name: Filippo Gambarota
+date: 2022-01-05
+output:
+  distill::distill_article:
+    self_contained: true
+    toc: true
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Packages
+
+library(filippoR)
+library(tidyverse)
+library(pwr)
+library(pbapply)
+```
+
+# General Idea
+
+This report is a simple reasoning with some simulation and some proposed solutions in order to deal with a common problem in experimental psychology: **the trade-off between the number of trials and the number of subjects**.
+
+In many experimental situation, each subject responds to multiple trials $k$. Regardless the number of predictors, the model has a hierarchical structure where trials are nested into subjects.
+
+
+
+## Some Examples
+
+This situation is quite common and also easy to understand. Some examples are:
+
+* EEG/ERP where the **signal to noise ratio** is given both by the number of subject and the number of trials
+* Binary data as correct/incorrect responses
+
+In general, when the number of observation contributes to estimate the subject parameter and the different subjects contribute to estimate a population level parameters we have this type of situation.
+
+# How to analyze
+
+The best way to analyze these type of data is by using a **multilevel approach** regardless the type (e.g., logistic, gaussian) of model. If we think about the simplest model with binary data, using the `glm` function, we have to insert both the number of success and the number of trials.
+Let's simulate some simple data using my `sim_binomial()` function:
+
+```{r}
+dat <- sim_binomial(sample_size = 10, ntrials = 50, p = 0.6)
+
+fit <- glm(cbind(success, fail) ~ 1, data = dat, family = binomial)
+
+summary(fit)
+```
+
+In this case we have different number of success/fails but a fixed number of trials and a fixed true probability of success. We can think to more complex situation but the model is fully taking into account that the estimated probability of success of our subject/sample (computed as $\frac{success}{trials}$) is computed given a number of total trials.
+
+INSERT HERE THE GLMER APPROACH
+
+# How to not analyze
+
+This type of multilevel binary data are usually (and wrongly) analyzed using a linear approach, like using a `t-test` against the chance level.
+
+This approach should be avoided because:
+
+* Ignore the linear model assumptions
+* Probably underestimate or wrongly estimate the variability (with consequences on type-1 error and effect size computation)
+* Completely ignore the number of trials (i.e. the precision at the subject level)
+
+If we use the previously simulated data, the linear model is written as:
+
+```{r}
+chance <- 0.5 # chance level
+dat$p0 <- dat$p_sample - chance
+fit_lm <- lm(p0 ~ 1, data = dat)
+summary(fit_lm)
+```
+
+As you can see, in this model there is no trial information, and the variability of data (and also the standard error that is used to compute the `t-value`) is based only on the difference between individual proportion of success.
+
+## Underestimation of the variability
+
+Staying with the previous data and the `one-sample` situation where the probability of success is compared with a given chance level, the t-test or in general the linear model approach depends on 3 aspects:
+
+* Probability of success (at the sample level)
+* Variability between subjects
+* Number of subjects
+
+This can be easily seen from the `one-sample` t-test formula where:
+
+$$t = \frac{\hat{p} - p}{\frac{\hat{s}}{\sqrt{n}}}$$
+So the t-value and the p-value depends on (regardless the sample $p$) the variability and the number for subjects. If our subjects perform 10 or 1000 trials is not considered here. However the main problem is that the variability $\hat{s}$ in the formula is underestimated when computed on bounded data as proportions. Proportions or probability are bounded between 0 and 1. Moreover, if we think about a series of **bernoulli** events with a chance probability of $0.5$, on the long run the true probability need to be bounded between 0.5 and 1.
+
+Using a very simple simulation we can see that if we sample some hypothetical *n* probabilities of success with different sample size, the range of possible values for the variability is very restricted.
+
+For a more realistic scenario we can also sample some probabilities value from a `truncated` distribution in order to have different likelihood associated to each value. The result in terms of coverage is the same. Crucially, the variability is even lower when a more relistic distribution (instead of the uniform) is used.
+
+```{r}
+sample_size = c(10, 20, 30, 40, 50, 80, 100, 150, 200)
+a = 10
+b = 9
+nsim = 10000
+upper_bound = 0.8
+
+sim = expand_grid(sample_size, upper_bound, nsim = 1:nsim, a, b)
+
+sim$sd_beta <- mapply(function(x, a, b) sd(rtbeta(x, a, b, lower = 0.5, upper = 0.8)), sim$sample_size, sim$a, sim$b)
+# more narrow
+
+sim$sd_unif <- mapply(function(x, y) sd(runif(x, min = 0.5, max = y)), sim$sample_size, sim$upper_bound)
+
+sim %>% 
+  pivot_longer(6:7, names_to = "dist", values_to = "sd") %>% 
+  group_by(sample_size, dist) %>% 
+  summarise(.mean = mean(sd),
+            .lower = .mean - 1*sd(sd),
+            .upper = .mean + 1*sd(sd)) %>% 
+  ggplot(aes(x = sample_size, y = .mean, color = dist)) +
+  geom_pointrange(aes(y = .mean, ymin = .lower, ymax = .upper))
+```
+
+Given that in some experimental situation (like in unconscious processing) the probability of success is usually low (from 0.5 to 0.8) the range of variability is very low too, bringing to an overestimation of both the `t-value` and the related effect size.
+
+Using a more realistic simulation, where given some `ntrials`, `sample size` and true probability of success `p` we simulate from a binomial distribution 1000 datasets and calculate both the mean and the standard deviation. In this way we can simulate a possible range of values for the variability and also for the effect size.
+
+```{r}
+sample_size = c(10, 20, 40, 50, 100)
+ntrials = c(20, 40, 60, 100, 200)
+p = seq(0.51, 0.8, 0.01)
+nsim = 1000
+
+dat = expand_grid(sample_size, ntrials, p, nsim = 1:nsim)
+
+p = pmap(list(dat$sample_size, dat$ntrials, dat$p), function(x, y, z) {rbinom(x, y, z)/y})
+
+dat$sd <- map_dbl(p, sd)
+dat$mean <- map_dbl(p, mean)
+
+dat %>% 
+  group_by(ntrials, p) %>% 
+  summarise(.sd = mean(sd),
+            .min = min(sd),
+            .max = max(sd),
+            .upper = mean(sd) + 1*sd(sd),
+            .lower = mean(sd) - 1*sd(sd)) %>% 
+  ggplot(aes(x = p, y = .sd, color = factor(ntrials))) +
+  geom_pointrange(aes(ymin = .lower, ymax = .upper))
+```
+
+In the previous plot is clear that keeping fixed the number of trials and the sample size within the same simulation, the variability of each dataset decrease as a function of both sample size and number of trials. However, the crucial factor seems to be the number of trials.
+
+In these simulation, there are some assumptions:
+
+* The real $p$ and the real number of trials is fixed
+* The variability is mainly given by **random fluctuations around the true value** for each subject
+
+So less trials bring a less precise estimation and so the variability between these less precise estimation is higher, regardless the number of subjects (sample size). Of course as the simple size increase, probably the random fluctuation are attenuated or at least counterbalanced.
+
+## Effect Size
+
+From the previous simulation we can also simulate the effect size in terms of `cohen's d`.
+
+```{r}
+dat %>% 
+  mutate(d = (mean - 0.5)/sd) %>% # cohen's d
+  group_by(ntrials, p) %>% 
+  summarise(.mean = mean(d),
+            .min = min(d),
+            .max = max(d),
+            .upper = mean(d) + 2*sd(d),
+            .lower = mean(d) - 2*sd(d)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = p, y = .mean, color = factor(ntrials))) +
+  geom_pointrange(aes(ymin = .lower, ymax = .upper))
+```
+
+In order to better understand the relationship we can fit a linear model to the simulated data in order to predict new `cohen's` values. We can see that even with a very low probability of success the effect size can be very high. The problem however is that given a true probability of success, the effect size should not depend on the number of trials.
+
+In other terms (I'm not sure) given a true effect size in the population, this should not depend on the number of trials. Given that in the `cohen's d` the reduced variability increase the effect size, as the number of trials increase the variability also decrease. So a very small effect (e.g. 0.52 of accuracy) can bring a huge effect size.
+
+## Power
+
+This of course is not a problem given that we are simply speaking about a standardized measure. Effect size are useful to communicate the magnitude of an effect without considering the raw data (i.e. across different methods). However the effect size is fundamental for the power analysis. In other terms a biased estimation of the effect size bring a biased estimation of power. If the effect size is overestimated the study that is based in this effect size for the prospective power calculation will be underpowered.
+
+Let's imagine a situation in which we have a `single subject` that perform *n* trials. As written before we have multiple way to analyse this type of data. The most straightforward way is to calculate the **proportion of correct responses** $\hat{p}$. This $\hat{p}$ is calculated as $\frac{k}{n}$ so the number of success over the number of trials. We can also calculate the standard error of this proportion (and also computing some test statistics see [here](https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval)). Of course, the test that we can perform is to compare $\hat{p}$ to a **population p** such as a **chance level**. If the chance level is the 50% here, is strightformard to compute e.g. a `binom.test()`.
+
+This sound like a one-sample t-test, however the missing part is the variability. We cannot compute a `t-test` because we don't have a variability in the normal sense. However my subject compute *n* trials and so I have a source of uncertainty about how well the real $p$ is estimated.
+
+The problem here is that the **mean** and the **variance** of a proportion (i.e. a binomial distribution) are not independent (like in the gaussian distribution).
+
+However, staying with the type of analysis "proportion-friendly" we can compute the power analysis for a single proportion where the sample size here is the number of trials. Let's assume the our subject has a probability of success of `0.57`. If the chance level is `0.5` we can compute and effect size such as the `cohen's h`. Using the `pwr::` package
+
+```{r}
+effect <- ES.h(0.57, 0.5)
+```
+
+Then we can calculate the required sample size in order to catch this effect at a given power level:
+
+```{r}
+plot(pwr.p.test(h=effect,power=0.80,sig.level=0.05,alternative="greater"))
+```
+
+So, if we want to be sure that a single subject is reliably classified as **above-chance** in a given task, we need more or less 300 trials. The assumption here is of course that the true p is fixed and that the probability of success for a given subject is the same across trials. So if we have multiple conditions, we need to simulate different scenarios.
+
+## Multiple subjects
+
+What happens if we have multiple subjects? We have a situations in which multiple subjects can be estimated at the subject level (as demonstrated before) and we can also estimate a group-level proportion of success.
+
+This is the main problem, how to compute power in this situation? The group-level p is an estimate of the population level p? What is the contribution of each subject?
+
+There are many conscious and unconscious assumptions here:
+
+* If we assume that in that specific task there is real parameter ($p$ in this case) and subjects variation is mainly due to random noise. The noise here is only the variation of the estimated $\hat{p}$ at the subject level and the real $p$ of the subject (that in this case is the same as the population). In this case we can:
+  * Consider the full amount of trials as a single subject, and performing a binomial test considering the sample $p$.
+  * Using a multilevel approach (i.e. logistic regression) that estimate $p$ and the standard deviation of $p$ across subjects. 
+
+* If we assume that the true probability of success can vary between subjects due to true variation in the effect (i.e. the real p of subject *i* is different from the real p for subject *i+1*) the situation is more tricky. We have to take into account the precision of each subject if we want to demonstrate that a group-level estimate is different from a given value. Problem here
+  * Different from continuous data, is hard to have the estimation of different source of variation from the fitted model (e.g. residual variance and intercept variance compared to **no residual variance for a logistic regression**)
+  * Probably the **logistic regression** takes into account the individual precision given that we specified the number of trials in the formula.
+  
+## Other notes
+
+* The best way is probably to reduce the sample size in this case and increase the number of trials (following the psychophysical tradition). In this case we have a better estimation of each subject and we can be pretty sure about the estimated **p**.
+
+* Unfortunately the problem of being sure that the subject is not **above-chance** is underestimated in literature, especially from a statistical point of view (see Morey et al. MAC model)
+
+# Functions
+
+## Binomial Data
+
+The `binomial_data_simulation` function can be used to generate **binomial** data varying the:
+
+-   Sample size
+
+-   Number of trials
+
+-   Probability of success
+
+-   Number of simulation
+
+-   Sample or not the probability of success for each subject
+
+    -   Parameters of the distribution
+
+The function return a `dataframe` with the entire simulation with columns that identify all different properties. The final dataset can be easily used in a `tidy` way to perform several manipulation such as: statistical tests for each level of parameters and power computation.
+
+## Convert to bernoulli
+
+After the usage of the `binomial_data_simulation` this function can turn the previous dataset into a `0-1` dataset for using a **generalized linear mixed model** approach.
+
+# Approach
+
+## 8 October 2020
+
+```{r 8 October 2020, eval = FALSE}
+
+library(lme4)
+library(brms)
+library(future.apply)
+library(pbapply)
+library(tidyverse)
+library(filippoR)
+
+
+ntrials = seq(10,300,10)
+sample_size = seq(10, 100, 10)
+
+dat = sim_binomial(sample_size, 100, sample_p = T, mean_p = 1, sd_p = 0.1, nsim = 100)
+
+dat_list = split(dat, list(dat$sample_size, dat$ntrials, dat$nsim))
+
+glm_list = pblapply(dat_list, function(x){
+  mod = glm(cbind(success, ntrials - success) ~ 1, family = binomial, data = x)
+})
+
+
+ilink <- family(glm_list[[1]])$linkinv # this can extract the inverse link function in a general way
+
+est = as.vector(sapply(glm_list, function(x){x$coefficients}))
+se = as.vector(sapply(glm_list, function(x){sqrt(diag(vcov(x)))})) # this can extract the standard error, the same as predict(mod, se.fit = T)
+
+sim = data.frame(
+  est = est,
+  se = se
+)
+
+sim$temp = names(glm_list)
+
+sim = sim %>% 
+  separate(temp, into = c("sample_size", "ntrials", "sim")) %>% 
+  mutate(sample_size = as.numeric(sample_size),
+         ntrials = as.numeric(ntrials))
+
+sim %>% 
+  mutate(est_p = ilink(est),
+         upper = ilink(est + (2*se)),
+         lower = ilink(est - (2*se)),
+         ntrials = ntrials,
+         p = 0.6) %>% 
+  ggplot(aes(x = factor(sample_size), y = est_p)) +
+  geom_boxplot() +
+  #geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  geom_hline(yintercept = 0.6, linetype = "dashed", size = 1, col = "red")
+```
+
+### Useful Links
+
+-   <https://fromthebottomoftheheap.net/2018/12/10/confidence-intervals-for-glms/> for the `ilink` approach
+
+### Results
+
+-   Seems that the confidence interval is affected by both the number of trials and the number of subjects in the simulation. The main problem is to **separate** these two aspects.
+
+-   One idea is to **fit also confidence intervals for the random effect** (for each subject) and this measure should be reduced as the number of trials increase
+
+-   Come simulare bene (e quindi recuperare da *n* simulazioni) i valori veri:
+
+    -   del singolo soggetto --\> influenzato principalmente dal numero dei trial
+
+    -   della popolazione --\> influenzato principalmente dal numero di soggetti
+
+## TODO
+
+* Simulate power with `t-test` and `binom.test` with the trial and p variation.
+
+* Introduce the topic of **different number of trials as critical**
+
+* Try different analysis tecniques (like multilevel modelling with the simulated data)
+
+* Introduce the topic of **weighted regression** especially for the `linear regression approach`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

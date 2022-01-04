@@ -1,0 +1,83 @@
+---
+title: "BRMS Notes"
+author:
+  - name: Filippo Gambarota
+date: 2022-01-05
+output:
+  distill::distill_article:
+    self_contained: true
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Packages
+
+library(brms)
+library(tidybayes)
+library(tidyverse)
+```
+
+# The model
+
+```{r}
+fit <- brm(mpg ~ disp + vs, data = mtcars)
+```
+
+# Predict Function
+
+E' importante mettere il `seed` perchè anche senza `newdata` i risultati sono leggermente diversi.
+
+* la funzione `predict()` di default mette `re_formula = NULL` ovvero considera anche i **group-level** effects (effetti random). In questo modello non ci sono effetti random quindi `re_formula = NULL` e `re_formula = NA` (cosi si sopprimono gli effetti random) sono la stessa cosa. 
+
+```{r}
+set.seed(22)
+
+predict(fit, re_formula = NULL) %>% # Random effect considered
+  tibble()
+
+set.seed(22)
+
+predict(fit, re_formula = NA) %>% # Random effect excluded
+  tibble()
+```
+
+# Fitted
+
+La funzione `fitted()` non prende in considerazione la **varianza residua** e quindi semplicemente riporta il **sampling dalla posterior** (se l'argomento `newdata` è missing). Quindi riporta il valore fittato dal modello per ogni osservazione.
+
+```{r}
+set.seed(22)
+
+fitted(fit) %>% 
+  tibble()
+
+predict(fit) %>% # wider CI given the residual variance
+  tibble()
+```
+
+La funzione `posterior_epred()` o `posterior_linepred()` hanno due proprietà distintive:
+
+* non tengono in considerazione la **varianza residua** (come `fitted()`)
+* trasformano i valori predetti usando la **link function**
+
+Per far equivalere `fitted()` e `posterior_linepred()` o `posterior_epred()` bisogna aggiungere `summary = FALSE` a `fitted()` in modo restituisca tutte le iterazioni.
+
+```{r}
+set.seed(22)
+
+fitted(fit, summary = FALSE)[1:10]
+
+posterior_epred(fit)[1:10]
+
+posterior_linpred(fit)[1:10]
+
+```
+
+Ci sono altri argomenti della funzione ma l'aspetto principale è considerare o meno la varianza residua. Summary:
+
+* `fitted()`: estrae dalla posterior i valori considerando solo l'**incertezza della media** con o senza effetti random (group-level effect; `re_formula = NA`)
+  * `posterior_epred()` e `posterior_linpred()` fanno la stessa cosa ma restituiscono tutte le iterazioni e trasformano la variabile con la *link function*
+* `predict()`: estrae dalla **posterior predictive distribution** tenendo in considerazione tutte le fonti di variabilità. Anche predict può considerare o meno i **group-level effect** usando `re_formula =`
+  * `posterior_predict()` fa la stessa cosa ma restituisce tutte le iterazioni

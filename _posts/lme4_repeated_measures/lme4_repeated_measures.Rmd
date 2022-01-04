@@ -1,0 +1,94 @@
+---
+title: "Lme4 and Repeated Measures"
+author:
+  - name: Filippo Gambarota
+date: 2022-01-05
+output:
+  distill::distill_article:
+    self_contained: true
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE, 
+                      warning = FALSE)
+```
+
+```{r packages}
+library(lme4)
+library(afex)
+```
+
+```{r}
+dat <- readRDS("test.rds")
+```
+
+# Afex and lme4
+
+Attenzione che quando si carica `afex` o `LmerTest` quando si rifitta un modello con `lme4` questo viene convertito con il `contr.sum` solo per la funzione `anova(fit)`.
+
+Sono riuscito ad avere praticamente lo stesso output tra `lme4` e `afex` (in generale `aov()` function). Ci sono due aspetti fondamentali:
+
+* **Contrast Coding**
+* **Random effect specification**
+
+Di default, `afex` o comunque tutti i pacchetti che eseguono un'**ANOVA** settano i constrasti come `contr.sum`. Questo permette di interpretare in modo corretto i main effect ma sopratutto le interazioni.
+
+Rispetto al **random effect** sono ancora in dubbio. Con la funzione `afex::aov_car()` dove la parte di errore viene esplicitata (al contrario di `afex::aov_ez()`), nel caso di **within subject** variables si deve esplicitamente scrivere `Error(group/var1*var2...)` questo significa che `var1, var2...` sono ripetute sui soggetti (`group`; in generale i soggetti).
+
+Con `lme4` di solito ho sempre messo `(1|subject)` per gestire la misura ripetuta dei soggetti e ho lasciato il constrast coding di default. 
+
+```{r}
+# Afex Model
+fit_afex <- fit_car <- afex::aov_car(Test_Memory_Abs ~ Emotion * Group + Error(Subject/Emotion), data = dat)
+
+# Lmer Model
+fit_lmer <- lmer(Test_Memory_Abs ~ Emotion * Group + (1|Subject), data = dat)
+```
+
+Fittando i due modelli in questo modo, i risultati con la funzione `anova(modello)` effettivamente sono diversi.
+
+```{r}
+anova(fit_lmer)
+fit_afex
+```
+
+Anche aggiustando i contrasti come su `afex` quindi mettendo `contr.sum` i risultati restano gli stessi per `lmer`. Immagino che `anova(fit)` non faccia quindi esattamente il test quando `lmerTest` non è caricato.
+
+Ora carico `lmerTest` e rifitto il modello. Mentre i parametri non cambiano, l'F-test è molto simile a quello di `afex` e quindi immagino che abbia ricodificato i contrasti.
+
+```{r}
+library(lmerTest)
+
+# Lmer Model
+fit_lmer <- lmer(Test_Memory_Abs ~ Emotion * Group + (1|Subject), data = dat)
+
+anova(fit_afex)
+anova(fit_lmer)
+```
+
+Ci delle differenze che in parte sono dovute al fatto che `lme4` lavora in modo diverso da `afex` sopratutto perchè i p-value e i df non sono disponibili di default. Tuttavia la parte random dovrebbe contenere anche il within-subject factor `emotion`. Questo punto mi è leggermente meno chiaro:
+
+* vedi [qui](http://www.dwoll.de/rexrepos/posts/anovaMixed.html)
+
+In ogni caso l'idea è che se ho dei fattori **within-subjects** devo aggiungerli nested nel soggetto quindi `(1|subjects/var)` o `(1|subject:var)`. Queste due scritture sono assolutamente identiche.
+
+```{r}
+fit_lmer <- lmer(Test_Memory_Abs ~ Emotion * Group + (1|Subject) + (1|Subject:Emotion), data = dat)
+
+anova(fit_lmer)
+fit_afex
+```
+
+I valori di 
+
+Ora i risultati sono praticamente identici.
+
+## Summary
+
+* `lme4` di default non fornisce p-value e quindi anche la funzione `anova()` non restituisce direttamente il test su ogni effetto.
+* Di default R assume il **treatment coding** che non permette la corretta intepretazione del risultato di `anova(fit)`. In questo caso però comunque `lmer` non cambia anche cambiando i contrasti.
+* quando uso `lmerTest` i risultati sono simili tra *afex* e *lme4*. In questo caso suppongo che `lmerTest` aggiusti i contrasti per avere lo stesso risultato.
+* Comunque i singoli parametri del modello non cambiano tra `lmer` e `lmerTest::lmer()` a meno che non si cambi esplicitamente il contrast coding.
+* Quando ho dei fattori **within subjects** devo comunque inserirli nella parte random. La scrittura è `(1|subject) + (1|subject:var1)` e così via per tutte le variabilit within subjects.

@@ -1,0 +1,52 @@
+---
+title: "Contrast Coding"
+author:
+  - name: Filippo Gambarota
+date: 2022-01-05
+output:
+  distill::distill_article:
+    self_contained: true
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Constrast Coding Examples
+
+Difference between `treatment contrast (aka dummy coding)` and `sum contrast`:
+
+* **dummy coding**: one level is coded as reference (0) and each parameter is the difference between the reference and the selected level. For a **two level** factor inside a `lm` we have two parameters the intercept ($\beta_0$) that is the mean when the predictior(s) is 0 so the mean of the reference level and $\beta_1$ that represents the increase of $y$ for a unit increase in $x_i$. A unit increase is the difference between 0 and 1 (two levels) so $\beta_1$ is the mean difference between level 0 and level 1.
+
+Some fake data:
+
+```{r}
+y <- c(rnorm(20, 10, 5), rnorm(20, 14, 9)) # simulate a response variable y
+
+sim <- data.frame(y, id = 1:40, gruppo = factor(rep(c("controllo", "sperimentale"), each = 20))) # create a dataset
+
+sim$gruppo_dummy <- sim$gruppo
+sim$gruppo_sum_1 <- sim$gruppo
+sim$gruppo_sum_2 <- sim$gruppo
+
+# Setting contrasts
+
+contrasts(sim$gruppo_dummy) <- contr.treatment
+contrasts(sim$gruppo_sum_1) <- contr.sum
+contrasts(sim$gruppo_sum_2) <- c(-0.5, 0.5) # sum contrast with 0.5, -0.5
+
+```
+
+Fitting the models:
+
+```{r}
+fit1 <- lm(y ~ gruppo, data = sim)
+fit2 <- lm(y ~ gruppo_sum_1, data = sim)
+fit3 <- lm(y ~ gruppo_sum_2, data = sim)
+
+coef(fit1)
+coef(fit2)
+coef(fit3)
+```
+

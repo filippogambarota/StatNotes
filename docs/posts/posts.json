@@ -1,0 +1,36 @@
+[
+  {
+    "path": "posts/2022-01-05-prova/",
+    "title": "prova",
+    "description": "A short description of the post.",
+    "author": [
+      {
+        "name": "Nora Jones",
+        "url": "https://example.com/norajones"
+      }
+    ],
+    "date": "2022-01-05",
+    "categories": [],
+    "contents": "\n\nContents\nCiao\n\nCiao\nDistill is a publication format for scientific and technical writing, native to the web.\nLearn more about using Distill at https://rstudio.github.io/distill.\n\n\n\n",
+    "preview": {},
+    "last_modified": "2022-01-05T00:35:26+01:00",
+    "input_file": {}
+  },
+  {
+    "path": "posts/contrast_coding/",
+    "title": "Contrast Coding",
+    "description": {},
+    "author": [
+      {
+        "name": "Filippo Gambarota",
+        "url": {}
+      }
+    ],
+    "date": "2022-01-05",
+    "categories": [],
+    "contents": "\nConstrast Coding Examples\nDifference between treatment contrast (aka dummy coding) and sum contrast:\ndummy coding: one level is coded as reference (0) and each parameter is the difference between the reference and the selected level. For a two level factor inside a lm we have two parameters the intercept (\\(\\beta_0\\)) that is the mean when the predictior(s) is 0 so the mean of the reference level and \\(\\beta_1\\) that represents the increase of \\(y\\) for a unit increase in \\(x_i\\). A unit increase is the difference between 0 and 1 (two levels) so \\(\\beta_1\\) is the mean difference between level 0 and level 1.\nSome fake data:\n\n\ny <- c(rnorm(20, 10, 5), rnorm(20, 14, 9)) # simulate a response variable y\n\nsim <- data.frame(y, id = 1:40, gruppo = factor(rep(c(\"controllo\", \"sperimentale\"), each = 20))) # create a dataset\n\nsim$gruppo_dummy <- sim$gruppo\nsim$gruppo_sum_1 <- sim$gruppo\nsim$gruppo_sum_2 <- sim$gruppo\n\n# Setting contrasts\n\ncontrasts(sim$gruppo_dummy) <- contr.treatment\ncontrasts(sim$gruppo_sum_1) <- contr.sum\ncontrasts(sim$gruppo_sum_2) <- c(-0.5, 0.5) # sum contrast with 0.5, -0.5\n\n\n\nFitting the models:\n\n\nfit1 <- lm(y ~ gruppo, data = sim)\nfit2 <- lm(y ~ gruppo_sum_1, data = sim)\nfit3 <- lm(y ~ gruppo_sum_2, data = sim)\n\ncoef(fit1)\n\n\n       (Intercept) grupposperimentale \n          8.280279           3.605870 \n\ncoef(fit2)\n\n\n  (Intercept) gruppo_sum_11 \n    10.083214     -1.802935 \n\ncoef(fit3)\n\n\n  (Intercept) gruppo_sum_21 \n     10.08321       3.60587 \n\n\n\n\n",
+    "preview": {},
+    "last_modified": "2022-01-05T00:37:39+01:00",
+    "input_file": {}
+  }
+]
