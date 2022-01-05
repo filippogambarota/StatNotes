@@ -87,33 +87,30 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
   <!--radix_placeholder_meta_tags-->
-<title>StatNotes: prova</title>
+<title>StatNotes: Lme4 and Repeated Measures</title>
 
-<meta property="description" itemprop="description" content="A short description of the post."/>
 
 
 <!--  https://schema.org/Article -->
 <meta property="article:published" itemprop="datePublished" content="2022-01-05"/>
 <meta property="article:created" itemprop="dateCreated" content="2022-01-05"/>
-<meta name="article:author" content="Nora Jones"/>
+<meta name="article:author" content="Filippo Gambarota"/>
 
 <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
-<meta property="og:title" content="StatNotes: prova"/>
+<meta property="og:title" content="StatNotes: Lme4 and Repeated Measures"/>
 <meta property="og:type" content="article"/>
-<meta property="og:description" content="A short description of the post."/>
 <meta property="og:locale" content="en_US"/>
 <meta property="og:site_name" content="StatNotes"/>
 
 <!--  https://dev.twitter.com/cards/types/summary -->
 <meta property="twitter:card" content="summary"/>
-<meta property="twitter:title" content="StatNotes: prova"/>
-<meta property="twitter:description" content="A short description of the post."/>
+<meta property="twitter:title" content="StatNotes: Lme4 and Repeated Measures"/>
 
 <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
 
 <script type="text/json" id="radix-rmarkdown-metadata">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["prova"]},{"type":"character","attributes":{},"value":["A short description of the post."]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","url"]}},"value":[{"type":"character","attributes":{},"value":["Nora Jones"]},{"type":"character","attributes":{},"value":["https://example.com/norajones"]}]}]},{"type":"character","attributes":{},"value":["2022-01-05"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["self_contained","toc","toc_float"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[true]}]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Lme4 and Repeated Measures"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Filippo Gambarota"]}]}]},{"type":"character","attributes":{},"value":["2022-01-05"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["self_contained","toc"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[true]}]}]}]}
 </script>
 <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -2066,7 +2063,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"prova","description":"A short description of the post.","authors":[{"author":"Nora Jones","authorURL":"https://example.com/norajones","affiliation":"&nbsp;","affiliationURL":"#","orcidID":""}],"publishedDate":"2022-01-05T00:00:00.000+01:00","citationText":"Jones, 2022"}
+{"title":"Lme4 and Repeated Measures","authors":[{"author":"Filippo Gambarota","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#","orcidID":""}],"publishedDate":"2022-01-05T00:00:00.000+01:00","citationText":"Gambarota, 2022"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2089,14 +2086,14 @@ document.addEventListener('DOMContentLoaded', function() {
 <!--/radix_placeholder_site_before_body-->
 
 <div class="d-title">
-<h1>prova</h1>
+<h1>Lme4 and Repeated Measures</h1>
 <!--radix_placeholder_categories-->
 <!--/radix_placeholder_categories-->
-<p><p>A short description of the post.</p></p>
+
 </div>
 
 <div class="d-byline">
-  Nora Jones <a href="https://example.com/norajones" class="uri">https://example.com/norajones</a> 
+  Filippo Gambarota  
   
 <br />2022-01-05
 </div>
@@ -2106,14 +2103,154 @@ document.addEventListener('DOMContentLoaded', function() {
 <nav class="l-text toc figcaption" id="TOC">
 <h3>Contents</h3>
 <ul>
-<li><a href="#ciao">Ciao</a></li>
+<li><a href="#afex-and-lme4">Afex and lme4</a>
+<ul>
+<li><a href="#summary">Summary</a></li>
+</ul></li>
 </ul>
 </nav>
 </div>
-<h1 id="ciao">Ciao</h1>
-<p>Distill is a publication format for scientific and technical writing, native to the web.</p>
-<p>Learn more about using Distill at <a href="https://rstudio.github.io/distill" class="uri">https://rstudio.github.io/distill</a>.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lme4/lme4/">lme4</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://afex.singmann.science/">afex</a></span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">&quot;test.rds&quot;</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<h1 id="afex-and-lme4">Afex and lme4</h1>
+<p>Attenzione che quando si carica <code>afex</code> o <code>LmerTest</code> quando si rifitta un modello con <code>lme4</code> questo viene convertito con il <code>contr.sum</code> solo per la funzione <code>anova(fit)</code>.</p>
+<p>Sono riuscito ad avere praticamente lo stesso output tra <code>lme4</code> e <code>afex</code> (in generale <code>aov()</code> function). Ci sono due aspetti fondamentali:</p>
+<ul>
+<li><strong>Contrast Coding</strong></li>
+<li><strong>Random effect specification</strong></li>
+</ul>
+<p>Di default, <code>afex</code> o comunque tutti i pacchetti che eseguono un’<strong>ANOVA</strong> settano i constrasti come <code>contr.sum</code>. Questo permette di interpretare in modo corretto i main effect ma sopratutto le interazioni.</p>
+<p>Rispetto al <strong>random effect</strong> sono ancora in dubbio. Con la funzione <code>afex::aov_car()</code> dove la parte di errore viene esplicitata (al contrario di <code>afex::aov_ez()</code>), nel caso di <strong>within subject</strong> variables si deve esplicitamente scrivere <code>Error(group/var1*var2...)</code> questo significa che <code>var1, var2...</code> sono ripetute sui soggetti (<code>group</code>; in generale i soggetti).</p>
+<p>Con <code>lme4</code> di solito ho sempre messo <code>(1|subject)</code> per gestire la misura ripetuta dei soggetti e ho lasciato il constrast coding di default.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Afex Model</span>
+<span class="va">fit_afex</span> <span class="op">&lt;-</span> <span class="va">fit_car</span> <span class="op">&lt;-</span> <span class="fu">afex</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/afex/man/aov_car.html">aov_car</a></span><span class="op">(</span><span class="va">Test_Memory_Abs</span> <span class="op">~</span> <span class="va">Emotion</span> <span class="op">*</span> <span class="va">Group</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html">Error</a></span><span class="op">(</span><span class="va">Subject</span><span class="op">/</span><span class="va">Emotion</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">dat</span><span class="op">)</span>
+
+<span class="co"># Lmer Model</span>
+<span class="va">fit_lmer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lme4/man/lmer.html">lmer</a></span><span class="op">(</span><span class="va">Test_Memory_Abs</span> <span class="op">~</span> <span class="va">Emotion</span> <span class="op">*</span> <span class="va">Group</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">Subject</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">dat</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<p>Fittando i due modelli in questo modo, i risultati con la funzione <code>anova(modello)</code> effettivamente sono diversi.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="fu"><a href="https://rdrr.io/r/stats/anova.html">anova</a></span><span class="op">(</span><span class="va">fit_lmer</span><span class="op">)</span>
+</code></pre>
+</div>
+<pre><code>Type III Analysis of Variance Table with Satterthwaite&#39;s method
+               Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+Emotion       142.499  71.250     2 3485.2 69.2109 &lt; 2.2e-16 ***
+Group          19.106  19.106     1   35.0 18.5595 0.0001268 ***
+Emotion:Group   3.285   1.643     2 3485.2  1.5955 0.2029527    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">fit_afex</span>
+</code></pre>
+</div>
+<pre><code>Anova Table (Type 3 tests)
+
+Response: Test_Memory_Abs
+         Effect          df  MSE         F  ges p.value
+1         Group       1, 35 0.13 18.69 *** .248   &lt;.001
+2       Emotion 1.57, 54.92 0.05 55.70 *** .378   &lt;.001
+3 Group:Emotion 1.57, 54.92 0.05      1.30 .014    .276
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;+&#39; 0.1 &#39; &#39; 1
+
+Sphericity correction method: GG </code></pre>
+</div>
+<p>Anche aggiustando i contrasti come su <code>afex</code> quindi mettendo <code>contr.sum</code> i risultati restano gli stessi per <code>lmer</code>. Immagino che <code>anova(fit)</code> non faccia quindi esattamente il test quando <code>lmerTest</code> non è caricato.</p>
+<p>Ora carico <code>lmerTest</code> e rifitto il modello. Mentre i parametri non cambiano, l’F-test è molto simile a quello di <code>afex</code> e quindi immagino che abbia ricodificato i contrasti.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/runehaubo/lmerTestR">lmerTest</a></span><span class="op">)</span>
+
+<span class="co"># Lmer Model</span>
+<span class="va">fit_lmer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lmerTest/man/lmer.html">lmer</a></span><span class="op">(</span><span class="va">Test_Memory_Abs</span> <span class="op">~</span> <span class="va">Emotion</span> <span class="op">*</span> <span class="va">Group</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">Subject</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">dat</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/stats/anova.html">anova</a></span><span class="op">(</span><span class="va">fit_afex</span><span class="op">)</span>
+</code></pre>
+</div>
+<pre><code>Anova Table (Type 3 tests)
+
+Response: Test_Memory_Abs
+              num Df den Df      MSE       F     ges    Pr(&gt;F)    
+Group         1.0000 35.000 0.130147 18.6878 0.24832 0.0001215 ***
+Emotion       1.5691 54.917 0.051118 55.7000 0.37765 2.016e-12 ***
+Group:Emotion 1.5691 54.917 0.051118  1.2976 0.01394 0.2761300    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="fu"><a href="https://rdrr.io/r/stats/anova.html">anova</a></span><span class="op">(</span><span class="va">fit_lmer</span><span class="op">)</span>
+</code></pre>
+</div>
+<pre><code>Type III Analysis of Variance Table with Satterthwaite&#39;s method
+               Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+Emotion       142.499  71.250     2 3485.2 69.2109 &lt; 2.2e-16 ***
+Group          19.106  19.106     1   35.0 18.5595 0.0001268 ***
+Emotion:Group   3.285   1.643     2 3485.2  1.5955 0.2029527    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+<p>Ci delle differenze che in parte sono dovute al fatto che <code>lme4</code> lavora in modo diverso da <code>afex</code> sopratutto perchè i p-value e i df non sono disponibili di default. Tuttavia la parte random dovrebbe contenere anche il within-subject factor <code>emotion</code>. Questo punto mi è leggermente meno chiaro:</p>
+<ul>
+<li>vedi <a href="http://www.dwoll.de/rexrepos/posts/anovaMixed.html">qui</a></li>
+</ul>
+<p>In ogni caso l’idea è che se ho dei fattori <strong>within-subjects</strong> devo aggiungerli nested nel soggetto quindi <code>(1|subjects/var)</code> o <code>(1|subject:var)</code>. Queste due scritture sono assolutamente identiche.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">fit_lmer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lmerTest/man/lmer.html">lmer</a></span><span class="op">(</span><span class="va">Test_Memory_Abs</span> <span class="op">~</span> <span class="va">Emotion</span> <span class="op">*</span> <span class="va">Group</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">Subject</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">Subject</span><span class="op">:</span><span class="va">Emotion</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">dat</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/stats/anova.html">anova</a></span><span class="op">(</span><span class="va">fit_lmer</span><span class="op">)</span>
+</code></pre>
+</div>
+<pre><code>Type III Analysis of Variance Table with Satterthwaite&#39;s method
+               Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+Emotion       114.261  57.131     2 69.928 55.7699 3.309e-15 ***
+Group          19.032  19.032     1 35.013 18.5784  0.000126 ***
+Emotion:Group   2.640   1.320     2 69.928  1.2886  0.282119    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="va">fit_afex</span>
+</code></pre>
+</div>
+<pre><code>Anova Table (Type 3 tests)
+
+Response: Test_Memory_Abs
+         Effect          df  MSE         F  ges p.value
+1         Group       1, 35 0.13 18.69 *** .248   &lt;.001
+2       Emotion 1.57, 54.92 0.05 55.70 *** .378   &lt;.001
+3 Group:Emotion 1.57, 54.92 0.05      1.30 .014    .276
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;+&#39; 0.1 &#39; &#39; 1
+
+Sphericity correction method: GG </code></pre>
+</div>
+<p>I valori di</p>
+<p>Ora i risultati sono praticamente identici.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><code>lme4</code> di default non fornisce p-value e quindi anche la funzione <code>anova()</code> non restituisce direttamente il test su ogni effetto.</li>
+<li>Di default R assume il <strong>treatment coding</strong> che non permette la corretta intepretazione del risultato di <code>anova(fit)</code>. In questo caso però comunque <code>lmer</code> non cambia anche cambiando i contrasti.</li>
+<li>quando uso <code>lmerTest</code> i risultati sono simili tra <em>afex</em> e <em>lme4</em>. In questo caso suppongo che <code>lmerTest</code> aggiusti i contrasti per avere lo stesso risultato.</li>
+<li>Comunque i singoli parametri del modello non cambiano tra <code>lmer</code> e <code>lmerTest::lmer()</code> a meno che non si cambi esplicitamente il contrast coding.</li>
+<li>Quando ho dei fattori <strong>within subjects</strong> devo comunque inserirli nella parte random. La scrittura è <code>(1|subject) + (1|subject:var1)</code> e così via per tutte le variabilit within subjects.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

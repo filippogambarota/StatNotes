@@ -18,6 +18,7 @@ library(filippoR)
 library(tidyverse)
 library(pwr)
 library(pbapply)
+library(truncateddist)
 ```
 
 # General Idea

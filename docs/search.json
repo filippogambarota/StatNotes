@@ -6,14 +6,14 @@
       "description": "Some additional details about the blog",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2022-01-05T00:37:59+01:00"
+      "last_modified": "2022-01-05T01:25:29+01:00"
     },
     {
       "path": "index.html",
       "title": "StatNotes",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2022-01-05T00:38:00+01:00"
+      "last_modified": "2022-01-05T01:25:30+01:00"
     }
   ],
   "collections": ["posts/posts.json"]

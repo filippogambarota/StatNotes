@@ -8,7 +8,9 @@ _site
 Thumbs.db
 ehthumbs.db
 .Rproj.user
-*.Rproj
 
 *.Rhistory
 *_cache/
+
+# specific
+.local-db/
